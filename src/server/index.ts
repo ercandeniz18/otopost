@@ -1,38 +1,45 @@
 import express from 'express';
 import cors from 'cors';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config.js';
 import { rateLimit } from 'express-rate-limit';
-import axios from 'axios';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import nodemailer from 'nodemailer';
+import twilio from 'twilio';
 
-// Type definitions
-interface GoogleTokenResponse {
-  access_token: string;
-  id_token: string;
-  expires_in: number;
-  token_type: string;
-  scope: string;
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-interface GoogleUserInfo {
-  id: string;
-  email: string;
-  name: string;
-  picture: string;
-  verified_email: boolean;
-}
+// Initialize email transporter
+let transporter: nodemailer.Transporter;
 
-interface User {
-  id: string;
-  email: string;
-  password?: string;
-  name: string;
-  picture?: string;
-  verified: boolean;
-  googleId?: string;
-}
+const initializeEmailService = async () => {
+  const testAccount = await nodemailer.createTestAccount();
+  transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: {
+      user: testAccount.user,
+      pass: testAccount.pass,
+    },
+  });
+};
+
+// Initialize email service
+initializeEmailService().catch(console.error);
+
+// Initialize Twilio client
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// Log environment variables (without sensitive data)
+console.log('Environment variables loaded:');
+console.log('PORT:', config.PORT);
+console.log('RATE_LIMIT_WINDOW_MS:', config.RATE_LIMIT_WINDOW_MS);
+console.log('RATE_LIMIT_MAX_REQUESTS:', config.RATE_LIMIT_MAX_REQUESTS);
 
 const app = express();
 const router = express.Router();
@@ -64,234 +71,75 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// In-memory user store (replace with database in production)
-const users: { [key: string]: User } = {};
-
-// Password strength validation
-const isPasswordStrong = (password: string): boolean => {
-  const minLength = 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return (
-    password.length >= minLength &&
-    hasUpperCase &&
-    hasLowerCase &&
-    hasNumbers &&
-    hasSpecialChar
-  );
-};
-
-// Route handlers
-const signupHandler = async (req: express.Request, res: express.Response): Promise<void> => {
+// Add email sending endpoint
+router.post('/send-email', async (req: express.Request, res: express.Response) => {
   try {
-    console.log('Signup request received:', req.body);
-    const { email, password, username } = req.body;
+    const { to, subject, html } = req.body;
 
-    if (!email || !password || !username) {
+    if (!to || !subject || !html) {
       res.status(400).json({ message: 'Missing required fields' });
       return;
     }
 
-    // Check if user already exists
-    if (Object.values(users).some(user => user.email === email)) {
-      res.status(400).json({ message: 'Email already registered' });
-      return;
+    if (!transporter) {
+      await initializeEmailService();
     }
 
-    // Validate password strength
-    if (!isPasswordStrong(password)) {
-      res.status(400).json({
-        message: 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters'
-      });
-      return;
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const userId = uuidv4();
-    users[userId] = {
-      id: userId,
-      email,
-      password: hashedPassword,
-      name: username,
-      verified: true, // Auto-verify for testing
-    };
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: userId, email },
-      config.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    console.log('User created successfully:', { userId, email, username });
-    res.status(201).json({
-      message: 'User created successfully',
-      token,
-      user: {
-        id: userId,
-        email,
-        name: username,
-      }
+    const info = await transporter.sendMail({
+      from: '"Your App" <noreply@yourapp.com>',
+      to,
+      subject,
+      html,
     });
-  } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
 
-const loginHandler = async (req: express.Request, res: express.Response): Promise<void> => {
-  try {
-    console.log('Login request received:', req.body);
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ message: 'Missing email or password' });
-      return;
-    }
-
-    // Find user
-    const userId = Object.keys(users).find(id => users[id].email === email);
-    if (!userId) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    const user = users[userId];
-
-    // Verify password
-    if (!user.password) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      config.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    console.log('Login successful:', { userId: user.id, email: user.email });
     res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
+      message: 'Email sent successfully',
+      previewUrl: nodemailer.getTestMessageUrl(info)
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Failed to send email:', error);
+    res.status(500).json({ message: 'Failed to send email' });
   }
-};
+});
 
-// Google OAuth callback handler
-const googleCallbackHandler = async (req: express.Request, res: express.Response): Promise<void> => {
+// Add SMS sending endpoint
+router.post('/send-sms', async (req: express.Request, res: express.Response) => {
   try {
-    console.log('Received Google OAuth callback request');
-    const { code, client_id, client_secret, redirect_uri } = req.body;
+    const { to, message } = req.body;
 
-    if (!code || !client_id || !client_secret || !redirect_uri) {
-      console.error('Missing required parameters:', { code: !!code, client_id: !!client_id, client_secret: !!client_secret, redirect_uri: !!redirect_uri });
-      res.status(400).json({ message: 'Missing required parameters' });
+    if (!to || !message) {
+      res.status(400).json({ message: 'Missing required fields' });
       return;
     }
 
-    console.log('Exchanging code for tokens...');
-    // Exchange code for tokens
-    let tokenResponse;
-    try {
-      tokenResponse = await axios.post<GoogleTokenResponse>('https://oauth2.googleapis.com/token', {
-        code,
-        client_id,
-        client_secret,
-        redirect_uri,
-        grant_type: 'authorization_code'
-      });
-    } catch (error) {
-      console.error('Token exchange error:', error instanceof Error ? error.message : 'Unknown error');
-      throw new Error('Failed to exchange code for tokens');
-    }
+    const result = await twilioClient.messages.create({
+      body: message,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: formatPhoneNumber(to),
+    });
 
-    const { access_token } = tokenResponse.data;
-
-    console.log('Fetching user info from Google...');
-    // Get user info from Google
-    let userInfoResponse;
-    try {
-      userInfoResponse = await axios.get<GoogleUserInfo>('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${access_token}` }
-      });
-    } catch (error) {
-      console.error('User info fetch error:', error instanceof Error ? error.message : 'Unknown error');
-      throw new Error('Failed to fetch user information');
-    }
-
-    const { email, name, picture, id: googleId } = userInfoResponse.data;
-
-    // Check if user exists
-    let userId = Object.keys(users).find(id => users[id].email === email);
-    let user = userId ? users[userId] : null;
-
-    if (!user) {
-      console.log('Creating new user for Google account:', email);
-      // Create new user
-      userId = uuidv4();
-      users[userId] = {
-        id: userId,
-        email,
-        name,
-        picture,
-        verified: true,
-        googleId
-      };
-      user = users[userId];
-    } else {
-      console.log('Found existing user:', email);
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      config.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    console.log('Authentication successful for user:', email);
     res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        picture: user.picture
-      }
+      message: 'SMS sent successfully',
+      sid: result.sid
     });
   } catch (error) {
-    console.error('Google OAuth error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to authenticate with Google';
-    res.status(500).json({ message: errorMessage });
+    console.error('Failed to send SMS:', error);
+    res.status(500).json({ message: 'Failed to send SMS' });
   }
-};
+});
 
-// Routes
-router.post('/auth/signup', signupHandler);
-router.post('/auth/login', loginHandler);
-router.post('/auth/google/callback', googleCallbackHandler);
+// Helper function to format phone numbers
+const formatPhoneNumber = (phone: string): string => {
+  // Remove any non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Add country code if not present
+  if (!cleaned.startsWith('1')) {
+    return `+1${cleaned}`;
+  }
+  
+  return `+${cleaned}`;
+};
 
 // Apply routes
 app.use('/api', router);

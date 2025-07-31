@@ -1,101 +1,98 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/api';
-import { sendVerificationCode as sendLocalVerificationCode, verifyCode as verifyLocalCode } from '../utils/emailVerification';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
 
 interface AuthContextType {
-  isAuthenticated: boolean;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
-  signup: (email: string, password: string, username: string) => Promise<void>;
-  verifyCode: (code: string, value: string) => Promise<boolean>;
-  sendVerificationCode: (type: 'email' | 'phone', value: string) => Promise<void>;
-}
-
-interface User {
-  id: string;
-  email: string;
-  phone?: string;
-  name: string;
-  avatar?: string;
-  isVerified: boolean;
+  isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const storedAuth = localStorage.getItem('auth');
-    return storedAuth ? JSON.parse(storedAuth).isAuthenticated : false;
-  });
-  const [user, setUser] = useState<User | null>(() => {
-    const storedAuth = localStorage.getItem('auth');
-    return storedAuth ? JSON.parse(storedAuth).user : null;
-  });
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('auth', JSON.stringify({ isAuthenticated, user }));
-  }, [isAuthenticated, user]);
+    // Check for stored user data on mount
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+    setIsLoading(false);
+  }, []);
 
-  const signup = async (email: string, password: string, username: string) => {
-    const response = await authApi.signup({ email, password, username });
-    if (response.token && response.user) {
-      setIsAuthenticated(true);
-      setUser(response.user);
-      // Send verification code
-      await sendLocalVerificationCode('email', email);
+  const login = async (email: string, password: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      // Mock login - replace with actual API call
+      const mockUser: User = {
+        id: '1',
+        name: 'John Doe',
+        email: email,
+        avatar: undefined
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } catch (error) {
+      throw new Error('Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const sendVerificationCode = async (type: 'email' | 'phone', value: string) => {
-    await sendLocalVerificationCode(type, value);
-  };
-
-  const verifyCode = async (code: string, value: string): Promise<boolean> => {
-    const isValid = await verifyLocalCode(value, code);
-    if (isValid) {
-      setUser(prev => prev ? { ...prev, isVerified: true } : null);
-    }
-    return isValid;
-  };
-
-  const login = async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
-    setIsAuthenticated(true);
-    setUser(response.user);
-  };
-
-  const logout = () => {
-    authApi.logout();
-    setIsAuthenticated(false);
+  const logout = (): void => {
     setUser(null);
-    localStorage.removeItem('auth');
+    localStorage.removeItem('user');
   };
 
-  const updateProfile = async (data: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...data });
+  const updateProfile = async (data: Partial<User>): Promise<void> => {
+    if (!user) throw new Error('No user logged in');
+    
+    setIsLoading(true);
+    try {
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      throw new Error('Profile update failed');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const value: AuthContextType = {
+    user,
+    login,
+    logout,
+    updateProfile,
+    isLoading,
+    isAuthenticated: !!user
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      user, 
-      login, 
-      logout, 
-      updateProfile, 
-      signup,
-      verifyCode,
-      sendVerificationCode
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

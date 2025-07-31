@@ -1,15 +1,6 @@
 import { sendEmail } from '../services/emailService';
 import { sendSMS } from '../services/smsService';
-
-// Generate a random code function
-const generateRandomCode = (length: number): string => {
-  const characters = '0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-};
+import { generateRandomCode } from './utils';
 
 interface VerificationCode {
   code: string;
