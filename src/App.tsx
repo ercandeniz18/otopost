@@ -12,6 +12,7 @@ import History from './pages/History';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Subscription from './pages/Subscription';
+import Login from './pages/Login';
 import './index.css';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
@@ -56,8 +57,9 @@ function App() {
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               <Toaster position="top-right" />
               <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Dashboard />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/*" element={<Layout />}>
+                  <Route path="" element={<Dashboard />} />
                   <Route path="api-settings" element={<ApiSettings />} />
                   <Route path="scraper-settings" element={<ScraperSettings />} />
                   <Route path="templates" element={<PostTemplates />} />

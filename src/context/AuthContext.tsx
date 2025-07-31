@@ -39,18 +39,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      // Mock login - replace with actual API call
-      const mockUser: User = {
-        id: '1',
-        name: 'John Doe',
-        email: email,
-        avatar: undefined
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      // Simple demo authentication
+      if (email === 'admin@example.com' && password === 'password') {
+        const mockUser: User = {
+          id: '1',
+          name: 'Admin User',
+          email: email,
+          avatar: undefined
+        };
+        
+        setUser(mockUser);
+        localStorage.setItem('user', JSON.stringify(mockUser));
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
-      throw new Error('Login failed');
+      throw error;
     } finally {
       setIsLoading(false);
     }

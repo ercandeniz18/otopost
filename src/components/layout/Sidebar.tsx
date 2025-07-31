@@ -31,7 +31,7 @@ const Sidebar: React.FC = () => {
     >
       {/* Logo */}
       <div className="flex items-center justify-center h-16 border-b dark:border-gray-700">
-        <div className={`flex items-center ${isExpanded ? 'justify-start pl-4' : 'justify-center'} space-x-2`}>
+        <div className={`flex items-center ${isExpanded ? 'justify-start pl-4' : 'justify-center'} space-x-2 flex-1`}>
           <div className="flex items-center justify-center p-2 rounded-lg bg-blue-600">
             <Bot size={24} className="text-white" />
           </div>
@@ -40,10 +40,9 @@ const Sidebar: React.FC = () => {
           )}
         </div>
         
-        {/* Toggle Button */}
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="ml-auto mr-4 p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
+          className="mr-4 p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-150"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
