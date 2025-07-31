@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Plus, Trash2, Copy, Edit, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Template {
   id: number;
@@ -53,10 +54,12 @@ const PostTemplates: React.FC = () => {
         : t
     ));
     setEditingTemplate(null);
+    toast.success('Template updated successfully');
   };
 
   const deleteTemplate = (id: number) => {
     setTemplates(templates.filter(t => t.id !== id));
+    toast.success('Template deleted successfully');
   };
 
   const duplicateTemplate = (template: Template) => {
@@ -69,6 +72,7 @@ const PostTemplates: React.FC = () => {
         name: `${template.name} (Copy)`,
       }
     ]);
+    toast.success('Template duplicated successfully');
   };
 
   const handleNewTemplateSubmit = () => {
@@ -87,6 +91,8 @@ const PostTemplates: React.FC = () => {
         variables,
       }
     ]);
+    
+    toast.success('Template created successfully');
     
     setNewTemplate({
       name: '',

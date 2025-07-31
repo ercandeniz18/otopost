@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Bell, Sun, Moon, Settings, LogOut, User, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -72,6 +73,16 @@ const Header: React.FC = () => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const markAllAsRead = () => {
+    // In a real app, this would update the backend
+    toast.success('All notifications marked as read');
+  };
+
+  const markAsRead = (id: number) => {
+    // In a real app, this would update the backend
+    toast.success('Notification marked as read');
+  };
+
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm z-10 transition-colors duration-150">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -118,7 +129,10 @@ const Header: React.FC = () => {
                       <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-600">
                         <div className="flex justify-between items-center">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                          <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                          <button 
+                            onClick={markAllAsRead}
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          >
                             Mark all as read
                           </button>
                         </div>
@@ -127,9 +141,10 @@ const Header: React.FC = () => {
                         {notifications.map((notification) => (
                           <div
                             key={notification.id}
+                            onClick={() => markAsRead(notification.id)}
                             className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 ${
                               !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                            }`}
+                            } cursor-pointer`}
                           >
                             <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

@@ -61,15 +61,23 @@ const Subscription: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubscribe = async () => {
+    const selectedPlanData = plans.find(p => p.id === selectedPlan);
+    if (!selectedPlanData) {
+      toast.error('Please select a plan');
+      return;
+    }
+    
     setIsProcessing(true);
+    toast.loading('Processing payment...', { id: 'payment' });
+    
     try {
       // Here you would integrate with your payment processor (e.g., Stripe)
       // For now, we'll simulate a successful payment
       await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Subscription activated successfully!');
+      toast.success(`${selectedPlanData.name} plan activated successfully!`, { id: 'payment' });
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Payment failed. Please try again.');
+      toast.error('Payment failed. Please try again.', { id: 'payment' });
     } finally {
       setIsProcessing(false);
     }

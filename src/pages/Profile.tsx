@@ -11,6 +11,12 @@ const Profile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim() || !email.trim()) {
+      toast.error('Name and email are required');
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -21,6 +27,14 @@ const Profile: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleChangePassword = () => {
+    toast.info('Change password functionality would open a modal here');
+  };
+
+  const handleDeleteAccount = () => {
+    toast.error('Delete account functionality would show a confirmation dialog');
   };
 
   return (
@@ -111,7 +125,10 @@ const Profile: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
         <div className="p-6">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Security</h3>
-          <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+          <button 
+            onClick={handleChangePassword}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             Change Password
           </button>
         </div>
@@ -121,7 +138,10 @@ const Profile: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
         <div className="p-6">
           <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">Danger Zone</h3>
-          <button className="px-4 py-2 border border-red-300 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+          <button 
+            onClick={handleDeleteAccount}
+            className="px-4 py-2 border border-red-300 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+          >
             Delete Account
           </button>
         </div>

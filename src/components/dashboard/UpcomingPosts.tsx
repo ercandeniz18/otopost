@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarClock, Twitter, Edit, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 // Mock data
 const upcomingPosts = [
@@ -32,9 +33,20 @@ const formatScheduledTime = (date: Date) => {
 };
 
 const UpcomingPosts: React.FC = () => {
+  const [posts, setPosts] = React.useState(upcomingPosts);
+
+  const editPost = (id: number) => {
+    toast.info('Edit functionality would open a modal here');
+  };
+
+  const deletePost = (id: number) => {
+    setPosts(posts.filter(post => post.id !== id));
+    toast.success('Post deleted successfully');
+  };
+
   return (
     <div className="space-y-4">
-      {upcomingPosts.length === 0 ? (
+      {posts.length === 0 ? (
         <div className="text-center py-8">
           <CalendarClock className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No upcoming posts</h3>
@@ -44,7 +56,7 @@ const UpcomingPosts: React.FC = () => {
         </div>
       ) : (
         <ul className="space-y-4">
-          {upcomingPosts.map((post) => (
+          {posts.map((post) => (
             <li key={post.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
@@ -67,10 +79,16 @@ const UpcomingPosts: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex-shrink-0 flex space-x-1">
-                  <button className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150">
+                  <button 
+                    onClick={() => editPost(post.id)}
+                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
+                  >
                     <Edit size={16} />
                   </button>
-                  <button className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150">
+                  <button 
+                    onClick={() => deletePost(post.id)}
+                    className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>

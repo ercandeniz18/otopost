@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Database, Clock, Plus, Trash2, Settings, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ScraperConfig {
   id: number;
@@ -33,6 +34,7 @@ const ScraperSettings: React.FC = () => {
     interval: 15,
     enabled: true,
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   const addScraperConfig = () => {
     if (!newConfig.url || !newConfig.selector) return;
@@ -45,6 +47,8 @@ const ScraperSettings: React.FC = () => {
       }
     ]);
     
+    toast.success('Data source added successfully');
+    
     // Reset form
     setNewConfig({
       url: '',
@@ -56,12 +60,15 @@ const ScraperSettings: React.FC = () => {
 
   const removeConfig = (id: number) => {
     setScraperConfigs(scraperConfigs.filter(config => config.id !== id));
+    toast.success('Data source removed');
   };
 
   const toggleConfig = (id: number) => {
     setScraperConfigs(scraperConfigs.map(config => 
       config.id === id ? { ...config, enabled: !config.enabled } : config
     ));
+    const config = scraperConfigs.find(c => c.id === id);
+    toast.success(`Data source ${config?.enabled ? 'disabled' : 'enabled'}`);
   };
 
   const updateInterval = (id: number, interval: number) => {
@@ -70,9 +77,21 @@ const ScraperSettings: React.FC = () => {
     ));
   };
 
-  const saveSettings = () => {
-    console.log("Saving scraper settings:", scraperConfigs);
-    // In a real app, this would save to a database or config file
+  const saveSettings = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    toast.loading('Saving settings...', { id: 'save-settings' });
+    
+    try {
+      // Simulate saving settings
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success('Settings saved successfully', { id: 'save-settings' });
+    } catch (error) {
+      toast.error('Failed to save settings', { id: 'save-settings' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -270,10 +289,11 @@ const ScraperSettings: React.FC = () => {
       <div className="flex justify-end">
         <button 
           onClick={saveSettings}
-          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150"
+          disabled={isSaving}
+          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save size={16} />
-          <span>Save All Settings</span>
+          <span>{isSaving ? 'Saving...' : 'Save All Settings'}</span>
         </button>
       </div>
     </div>

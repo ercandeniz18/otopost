@@ -1,25 +1,43 @@
 import React from 'react';
 import { Play, Pause, RefreshCw, Check, AlertTriangle, Clock, Twitter } from 'lucide-react';
+import toast from 'react-hot-toast';
 import StatusCard from '../components/dashboard/StatusCard';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import UpcomingPosts from '../components/dashboard/UpcomingPosts';
 
 const Dashboard: React.FC = () => {
   // Mock data for demonstration
-  const automationActive = true;
+  const [automationActive, setAutomationActive] = React.useState(true);
+  const [isRunning, setIsRunning] = React.useState(false);
   const lastSuccessfulRun = '2 hours ago';
   const nextScheduledRun = '1 hour';
   const postsCreated = 12;
   const dataSources = 3;
 
-  const toggleAutomation = () => {
-    // Logic to toggle automation would go here
-    console.log("Toggle automation");
+  const toggleAutomation = async () => {
+    try {
+      setAutomationActive(!automationActive);
+      toast.success(automationActive ? 'Automation paused' : 'Automation started');
+    } catch (error) {
+      toast.error('Failed to toggle automation');
+    }
   };
 
-  const runNow = () => {
-    // Logic to run automation immediately would go here
-    console.log("Run now");
+  const runNow = async () => {
+    if (isRunning) return;
+    
+    setIsRunning(true);
+    toast.loading('Running automation...', { id: 'run-now' });
+    
+    try {
+      // Simulate automation run
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      toast.success('Automation completed successfully', { id: 'run-now' });
+    } catch (error) {
+      toast.error('Automation failed', { id: 'run-now' });
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -32,11 +50,12 @@ const Dashboard: React.FC = () => {
         <div className="flex space-x-2 mt-4 md:mt-0">
           <button 
             onClick={toggleAutomation}
+            disabled={isRunning}
             className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
               automationActive 
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
                 : 'bg-green-500 hover:bg-green-600 text-white'
-            } transition-colors duration-150`}
+            } transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {automationActive ? (
               <>
@@ -52,10 +71,11 @@ const Dashboard: React.FC = () => {
           </button>
           <button 
             onClick={runNow}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150"
+            disabled={isRunning}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <RefreshCw size={16} />
-            <span>Run Now</span>
+            <RefreshCw size={16} className={isRunning ? 'animate-spin' : ''} />
+            <span>{isRunning ? 'Running...' : 'Run Now'}</span>
           </button>
         </div>
       </div>

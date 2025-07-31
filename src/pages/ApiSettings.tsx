@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Key, Bot, Twitter, Eye, EyeOff, Save, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ApiKeyInfo {
   key: string;
@@ -30,17 +31,59 @@ const ApiSettings: React.FC = () => {
     key: '',
     status: 'unverified',
   });
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const verifyKeys = () => {
-    // Simulate API verification
-    console.log("Verifying API keys...");
-    // In a real app, this would call an API to verify the keys
+  const verifyKeys = async () => {
+    if (isVerifying) return;
+    
+    setIsVerifying(true);
+    toast.loading('Verifying API keys...', { id: 'verify-keys' });
+    
+    try {
+      // Simulate API verification
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update status for keys that have values
+      if (openAIKey.key) {
+        setOpenAIKey(prev => ({ ...prev, status: 'verified', lastVerified: new Date().toLocaleString() }));
+      }
+      if (twitterApiKey.key) {
+        setTwitterApiKey(prev => ({ ...prev, status: 'verified', lastVerified: new Date().toLocaleString() }));
+      }
+      if (twitterApiSecret.key) {
+        setTwitterApiSecret(prev => ({ ...prev, status: 'verified', lastVerified: new Date().toLocaleString() }));
+      }
+      if (twitterAccessToken.key) {
+        setTwitterAccessToken(prev => ({ ...prev, status: 'verified', lastVerified: new Date().toLocaleString() }));
+      }
+      if (twitterAccessSecret.key) {
+        setTwitterAccessSecret(prev => ({ ...prev, status: 'verified', lastVerified: new Date().toLocaleString() }));
+      }
+      
+      toast.success('API keys verified successfully', { id: 'verify-keys' });
+    } catch (error) {
+      toast.error('Failed to verify API keys', { id: 'verify-keys' });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
-  const saveKeys = () => {
-    // Save API keys
-    console.log("Saving API keys...");
-    // In a real app, this would securely store the API keys
+  const saveKeys = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    toast.loading('Saving API keys...', { id: 'save-keys' });
+    
+    try {
+      // Simulate saving API keys
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success('API keys saved successfully', { id: 'save-keys' });
+    } catch (error) {
+      toast.error('Failed to save API keys', { id: 'save-keys' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -172,17 +215,19 @@ const ApiSettings: React.FC = () => {
       <div className="flex space-x-3">
         <button 
           onClick={verifyKeys}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150"
+          disabled={isVerifying || isSaving}
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <RefreshCw size={16} />
-          <span>Verify Keys</span>
+          <RefreshCw size={16} className={isVerifying ? 'animate-spin' : ''} />
+          <span>{isVerifying ? 'Verifying...' : 'Verify Keys'}</span>
         </button>
         <button 
           onClick={saveKeys}
-          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150"
+          disabled={isVerifying || isSaving}
+          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center space-x-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save size={16} />
-          <span>Save Keys</span>
+          <span>{isSaving ? 'Saving...' : 'Save Keys'}</span>
         </button>
       </div>
     </div>
