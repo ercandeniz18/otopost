@@ -82,9 +82,17 @@ const Sidebar: React.FC = () => {
       {/* Bottom section with Twitter info */}
       {isExpanded && (
         <div className="absolute bottom-0 w-full p-4 border-t dark:border-gray-700">
-          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-            <Twitter size={16} />
-            <span className="text-sm">Connected</span>
+          <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
+                <Twitter size={16} className="text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Twitter</p>
+                <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
+              </div>
+            </div>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           </div>
         </div>
       )}
