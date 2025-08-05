@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, CreditCard, Shield } from 'lucide-react';
+import { Check, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -56,7 +56,6 @@ const plans: Plan[] = [
 
 const Subscription: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>('pro');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
@@ -151,39 +150,16 @@ const Subscription: React.FC = () => {
               Payment Details
             </h2>
 
-            {/* Payment Method Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Payment Method
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setPaymentMethod('card')}
-                  className={`flex items-center justify-center p-4 rounded-lg border ${
-                    paymentMethod === 'card'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  <span>Credit Card</span>
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('bank')}
-                  className={`flex items-center justify-center p-4 rounded-lg border ${
-                    paymentMethod === 'bank'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  <Shield className="h-5 w-5 mr-2" />
-                  <span>Bank Transfer</span>
-                </button>
-              </div>
-            </div>
 
-            {/* Payment Form */}
-            {paymentMethod === 'card' ? (
+            {/* Credit Card Payment Form */}
+            <div className="mb-6">
+              <div className="flex items-center mb-4">
+                <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Credit Card Information
+                </label>
+              </div>
+              
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -195,6 +171,7 @@ const Subscription: React.FC = () => {
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -217,31 +194,19 @@ const Subscription: React.FC = () => {
                     />
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Account Number
+                    Cardholder Name
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter your account number"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Routing Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter your routing number"
+                    placeholder="John Doe"
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Subscribe Button */}
             <button
