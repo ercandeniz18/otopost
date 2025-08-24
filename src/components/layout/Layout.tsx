@@ -28,9 +28,9 @@ const Layout: React.FC = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 w-full overflow-hidden">
+      <div className="flex flex-col flex-1 w-full">
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 relative">
           <div className="container mx-auto max-w-6xl">
             <Outlet />
           </div>

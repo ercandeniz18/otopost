@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Bell, Sun, Moon, Settings, LogOut, User, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTheme } from '../../context/ThemeContext';
@@ -10,9 +10,12 @@ interface Notification {
   message: string;
   time: Date;
   read: boolean;
+  link: string;
+  type: 'kap' | 'analysis' | 'post' | 'system';
 }
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,24 +24,30 @@ const Header: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  const [notifications] = useState<Notification[]>([
+  const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
       message: "New data scraped from KAP",
       time: new Date(Date.now() - 1000 * 60 * 30),
-      read: false
+      read: false,
+      type: 'kap',
+      link: '/history?source=kap&latest=true'
     },
     {
       id: 2,
       message: "Analysis completed for recent data",
       time: new Date(Date.now() - 1000 * 60 * 60),
-      read: false
+      read: false,
+      type: 'analysis',
+      link: '/analytics?report=latest'
     },
     {
       id: 3,
       message: "3 new posts scheduled",
       time: new Date(Date.now() - 1000 * 60 * 120),
-      read: false
+      read: false,
+      type: 'post',
+      link: '/templates?scheduled=true'
     }
   ]);
 
@@ -74,13 +83,33 @@ const Header: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAllAsRead = () => {
-    // In a real app, this would update the backend
+    setNotifications(prevNotifications => 
+      prevNotifications.map(notif => ({
+        ...notif,
+        read: true
+      }))
+    );
     toast.success('All notifications marked as read');
   };
 
+  const handleNotificationClick = (notification: Notification) => {
+    // Mark as read
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === notification.id ? { ...notif, read: true } : notif
+      )
+    );
+
+    // Navigate to the related page without closing the popup
+    navigate(notification.link);
+  };
+
   const markAsRead = (id: number) => {
-    // In a real app, this would update the backend
-    toast.success('Notification marked as read');
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
   };
 
   return (
@@ -139,18 +168,22 @@ const Header: React.FC = () => {
                       </div>
                       <div className="max-h-64 overflow-y-auto">
                         {notifications.map((notification) => (
-                          <div
+                          <button
                             key={notification.id}
-                            onClick={() => markAsRead(notification.id)}
-                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 ${
-                              !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                            } cursor-pointer`}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent popup from closing
+                              handleNotificationClick(notification);
+                            }}
+                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 
+                              ${!notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''} 
+                              cursor-pointer transition-all duration-300 ease-in-out focus:outline-none
+                              transform hover:scale-[0.995] active:scale-[0.99]`}
                           >
                             <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               {formatNotificationTime(notification.time)}
                             </p>
-                          </div>
+                          </button>
                         ))}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">

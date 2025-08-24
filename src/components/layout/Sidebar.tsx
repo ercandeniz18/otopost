@@ -56,46 +56,48 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation Items */}
-      <div className="py-4">
-        <ul className="space-y-2 px-2">
-          {navItems.map((item) => (
-            <li key={item.name}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => `
-                  flex items-center px-4 py-3 rounded-lg
-                  ${isActive 
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' 
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }
-                  transition-colors duration-150
-                `}
-              >
-                <span className="min-w-[20px]">{item.icon}</span>
-                {isExpanded && <span className="ml-3">{item.name}</span>}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Bottom section with Twitter info */}
-      {isExpanded && (
-        <div className="absolute bottom-0 w-full p-4 border-t dark:border-gray-700">
-          <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
-                <Twitter size={16} className="text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Twitter</p>
-                <p className="text-xs text-green-600 dark:text-green-400">Connected</p>
-              </div>
-            </div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          </div>
+      <div className="flex flex-col h-[calc(100%-4rem)]">
+        <div className="flex-1 overflow-y-auto py-4">
+          <ul className="space-y-2 px-2">
+            {navItems.map((item) => (
+              <li key={item.name}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) => `
+                    flex items-center px-4 py-3 rounded-lg
+                    ${isActive 
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' 
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    }
+                    transition-colors duration-150
+                  `}
+                >
+                  <span className="min-w-[20px]">{item.icon}</span>
+                  {isExpanded && <span className="ml-3">{item.name}</span>}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+
+        {/* Bottom section with Twitter info */}
+        {isExpanded && (
+          <div className="p-2 border-t dark:border-gray-700">
+            <div className="flex items-center justify-between p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center w-5 h-5 bg-blue-500 rounded-full">
+                  <Twitter size={12} className="text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-900 dark:text-white truncate">Twitter</p>
+                  <p className="text-[10px] leading-tight text-green-600 dark:text-green-400">Connected</p>
+                </div>
+              </div>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0 ml-1"></div>
+            </div>
+          </div>
+        )}
+      </div>
     </aside>
   );
 };
