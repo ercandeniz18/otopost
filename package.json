@@ -9,7 +9,10 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node dist/server/index.js"
+    "start": "node dist/server/index.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@types/axios": "^0.9.36",
